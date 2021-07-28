@@ -41,19 +41,21 @@ export default {
   mounted() {
     this.receberDados();
 
-    this.enviarArquivo(this.arquivoExcel)
-    this.enviarArquivo(this.arquivoBanco)
+    // this.enviarArquivo(this.arquivoExcel);
+    // this.enviarArquivo(this.arquivoBanco);
   },
   data() {
     return {
-      arquivoExcel: {
-        name: "teste.xlsx",
-        path: "E:\\Coisas de programacao\\teste.xlsx",
-      },
-      arquivoBanco: {
-        name: "db.dbf",
-        path: "E:\\Coisas de programacao\\db.dbf",
-      },
+      // arquivoExcel: {
+      //   name: "Códigos KMX x HF.XLSX",
+      //   path: "C:\\Users\\samuel\\Desktop\\teste\\Códigos KMX x HF.XLSX",
+      // },
+      // arquivoBanco: {
+      //   name: "CASTELMOTORS.dbf",
+      //   path: "C:\\Users\\samuel\\Desktop\\teste\\CASTELMOTORS.dbf",
+      // },
+      arquivoExcel: "",
+      arquivoBanco: "",
 
       arquivosOk: false,
 

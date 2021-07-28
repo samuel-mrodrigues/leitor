@@ -30,8 +30,21 @@ class ExcelMap {
         return this.relExcelxDBF
     }
 
+    getColunaDBF(colExcel) {
+        for (const key in this.relExcelxDBF) {
+            if (key == colExcel && this.relExcelxDBF[key] != "") {
+                const nomeNoDBF = this.relExcelxDBF[key];
+                return nomeNoDBF
+            }
+        }
+
+        return ""
+    }
+
     setRelacao(colExcel, colDBF) {
+        this.updateRelacoes()
         this.relExcelxDBF[colExcel] = colDBF
+        console.log(`Nova relação adicionada ${colExcel} >> ${colDBF}`);
     }
 
     setX(novaLinha) {
@@ -42,21 +55,18 @@ class ExcelMap {
     excluirColuna(qualColuna) {
         console.log("Excluindo a coluna " + qualColuna);
         let novoArray = []
-        for (let index = this.x; index < this.getTotalLinhas(); index++) {
+        for (let index = 0; index < this.getTotalLinhas(); index++) {
             const linhaAtual = this.arrayExcel[index]
 
             linhaAtual.splice(qualColuna, 1)
             novoArray.push(linhaAtual)
         }
 
+        console.log("--------------");
+        console.log("Novo array:");
+        console.log(novoArray);
+
         this.arrayExcel = novoArray
-
-        console.log(this.arrayExcel);
-        if (this.arrayExcel[this.x].length == 0) {
-            console.log("Array igual a 0, setando pra vazio...");
-            this.arrayExcel = []
-        }
-
         this.updateRelacoes()
     }
 

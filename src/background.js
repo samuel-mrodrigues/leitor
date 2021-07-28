@@ -8,11 +8,13 @@ import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 import lerExcel from "read-excel-file/node"
 import DBFParser from "node-dbf"
 
+import { DBFFile } from "dbffile"
+
 const isDevelopment = process.env.NODE_ENV !== 'production'
 let janela;
 
-ipcMain.on("novo-arquivo", async(evento, arquivo) => {
-    if (arquivo.name.toLowerCase().indexOf(".xlsx") != -1) {
+ipcMain.on("novo-arquivo", async (evento, arquivo) => {
+    if (arquivo.name.toLowerCase().indexOf(".xlsx") != -1 || arquivo.name.toLowerCase().indexOf(".xls") != -1) {
         console.log("Lendo um arquivo Excel...");
         let dadosExcel = await lerArquivoExcel(arquivo)
 
@@ -21,22 +23,29 @@ ipcMain.on("novo-arquivo", async(evento, arquivo) => {
     } else if (arquivo.name.toLowerCase().indexOf(".dbf") != -1) {
         console.log("Lendo um arquivo DBF...");
 
-        let dbfReader = new DBFParser(arquivo.path, { encoding: "utf-8" })
-        let dbfDados = []
+        // let dbfReader = new DBFParser(arquivo.path, { encoding: "utf-8" })
+        // let dbfDados = []
 
-        // Ler todas as linhas do arquivo DBF
-        dbfReader.on('record', (linha) => {
-            dbfDados.push(linha)
-        });
+        // // Ler todas as linhas do arquivo DBF
+        // dbfReader.on('record', (linha) => {
+        //     dbfDados.push(linha)
+        // });
 
-        dbfReader.on('end', (p) => {
-            console.log('Leitura do arquivo DBF concluida');
-            janela.webContents.send("dados-dbf", dbfDados)
-        });
+        // dbfReader.on('end', (p) => {
+        //     console.log('Leitura do arquivo DBF concluida');
+        //     janela.webContents.send("dados-dbf", dbfDados)
+        // });
 
-        dbfReader.parse()
+        // dbfReader.parse()
+
+        console.log("--------------------------------------");
+        console.log("Leitura do outro DBF Parser");
+        let dados = await DBFFile.open(arquivo.path)
+
+        console.log("DBF contem " + dados.recordCount + " recordes");
+        let recordes = await dados.readRecords(dados.recordCount)
+        janela.webContents.send("dados-dbf", recordes)
         evento.returnValue = { status: 0 }
-
     } else {
         console.log("Arquivo recebido não é um Excel nem DBF");
         evento.returnValue = { status: 1 }
@@ -76,7 +85,7 @@ async function createWindow() {
         if (!process.env.IS_TEST) janela.webContents.openDevTools()
     } else {
         createProtocol('app')
-            // Load the index.html when not in development
+        // Load the index.html when not in development
         janela.loadURL('app://./index.html')
     }
 }
@@ -99,7 +108,7 @@ app.on('activate', () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', async() => {
+app.on('ready', async () => {
     if (isDevelopment && !process.env.IS_TEST) {
         // Install Vue Devtools
         try {

@@ -13,7 +13,8 @@
             $emit('add-relacionamento', colunaExcel, $event.target.value)
           "
         >
-          <option value="" selected disabled>Selecione</option>
+          <!-- <option value="" selected disabled>Selecione</option> -->
+          <option value="" selected>Nenhuma(ignorar)</option>
           <option
             v-for="colunaDBF in mapaDBF.getColunas()"
             :key="colunaDBF"

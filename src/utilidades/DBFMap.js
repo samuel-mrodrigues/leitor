@@ -23,7 +23,15 @@ class DBFMap {
     }
 
     getTotalColunas() {
+        return this.linhasDBF[0].length
+    }
+
+    getTotalRecordes() {
         return this.linhasDBF.length
+    }
+
+    getRecorde(row) {
+        return this.linhasDBF[row]
     }
 }
 
