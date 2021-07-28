@@ -6,21 +6,35 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 
 import lerExcel from "read-excel-file/node"
+import DBFParser from "node-dbf"
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 let janela;
 
-ipcMain.on("novo-arquivo", (evento, arquivo) => {
+ipcMain.on("novo-arquivo", async(evento, arquivo) => {
     if (arquivo.name.toLowerCase().indexOf(".xlsx") != -1) {
         console.log("Lendo um arquivo Excel...");
-        let dadosExcel = lerArquivoExcel(arquivo)
+        let dadosExcel = await lerArquivoExcel(arquivo)
 
-        evento.returnValue = { status: 0 }
         janela.webContents.send("dados-excel", dadosExcel)
+        evento.returnValue = { status: 0 }
     } else if (arquivo.name.toLowerCase().indexOf(".dbf") != -1) {
         console.log("Lendo um arquivo DBF...");
 
+        let dbfReader = new DBFParser(arquivo.path, { encoding: "utf-8" })
+        let dbfDados = []
 
+        // Ler todas as linhas do arquivo DBF
+        dbfReader.on('record', (linha) => {
+            dbfDados.push(linha)
+        });
+
+        dbfReader.on('end', (p) => {
+            console.log('Leitura do arquivo DBF concluida');
+            janela.webContents.send("dados-dbf", dbfDados)
+        });
+
+        dbfReader.parse()
         evento.returnValue = { status: 0 }
 
     } else {
@@ -29,15 +43,12 @@ ipcMain.on("novo-arquivo", (evento, arquivo) => {
     }
 })
 
-function lerArquivoExcel(arquivo) {
-    console.log(arquivo);
-    lerExcel(arquivo.path).then((rows) => {
-        console.log("Status");
-        console.log(rows);
-
-        console.log("Length: " + rows.length);
-        return rows
+async function lerArquivoExcel(arquivo) {
+    let dadosLeitura = []
+    await lerExcel(arquivo.path).then((rows) => {
+        dadosLeitura = rows
     })
+    return dadosLeitura
 }
 
 // Scheme must be registered before the app is ready

@@ -1,10 +1,37 @@
 class ExcelMap {
     x = 0
     arrayExcel = []
+    relExcelxDBF = {}
 
     constructor(dados) {
-        console.log("Mapeando dados novos...");
+        console.log("Inicializando mapa de Excel...");
         this.arrayExcel = dados
+        console.log(this.arrayExcel);
+
+        this.updateRelacoes()
+    }
+
+    updateRelacoes() {
+        let novaRelacao = {}
+        this.getColunas().forEach(coluna => {
+
+            // Se existe na relacao, copia pro novo
+            if (Object.keys(this.relExcelxDBF).indexOf(coluna) != -1) {
+                novaRelacao[coluna] = this.relExcelxDBF[coluna]
+            } else {
+                novaRelacao[coluna] = ""
+            }
+        })
+
+        this.relExcelxDBF = novaRelacao
+    }
+
+    getRelacoes() {
+        return this.relExcelxDBF
+    }
+
+    setRelacao(colExcel, colDBF) {
+        this.relExcelxDBF[colExcel] = colDBF
     }
 
     setX(novaLinha) {
@@ -29,6 +56,8 @@ class ExcelMap {
             console.log("Array igual a 0, setando pra vazio...");
             this.arrayExcel = []
         }
+
+        this.updateRelacoes()
     }
 
     excluirLinha(qualLinha) {

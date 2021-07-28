@@ -24,7 +24,7 @@
     </div>
 
     <div v-else>
-      <TelaExcel :dadosArray="dadosPlanilha" />
+      <TelaExcel :dadosPlanilha="dadosPlanilha" :dadosDBF="dadosDBF" />
     </div>
   </div>
 </template>
@@ -32,7 +32,7 @@
 <script>
 import { ipcRenderer } from "electron";
 
-import TelaExcel from "./TelaExcel.vue";
+import TelaExcel from "./TelaPrincipal.vue";
 
 export default {
   components: {
@@ -40,32 +40,47 @@ export default {
   },
   mounted() {
     this.receberDados();
-    // this.arquivoExcel = {
-    //   path: "E:\\Coisas de programacao\\teste.xlsx",
-    //   name: "teste.xlsx",
-    // };
-    // this.enviarArquivo();
+
+    this.enviarArquivo(this.arquivoExcel)
+    this.enviarArquivo(this.arquivoBanco)
   },
   data() {
     return {
-      arquivoExcel: "",
-      arquivoBanco: "",
+      arquivoExcel: {
+        name: "teste.xlsx",
+        path: "E:\\Coisas de programacao\\teste.xlsx",
+      },
+      arquivoBanco: {
+        name: "db.dbf",
+        path: "E:\\Coisas de programacao\\db.dbf",
+      },
 
       arquivosOk: false,
 
       dadosPlanilha: "",
+      dadosDBF: "",
     };
   },
   watch: {
     arquivoExcel() {
-      this.enviarArquivo(this.arquivoExcel)
-
-      if (this.arquivoBanco != "") {
-        this.arquivosOk = true
-      }
+      this.enviarArquivo(this.arquivoExcel);
     },
     arquivoBanco() {
-      this.enviarArquivo(this.arquivoBanco)
+      this.enviarArquivo(this.arquivoBanco);
+    },
+    dadosPlanilha() {
+      if (this.dadosPlanilha != "" && this.dadosDBF != "") {
+        console.log("Dados coletados, liberando visão...");
+
+        this.arquivosOk = true;
+      }
+    },
+    dadosDBF() {
+      if (this.dadosPlanilha != "" && this.dadosDBF != "") {
+        console.log("Dados coletados, liberando visão...");
+
+        this.arquivosOk = true;
+      }
     },
   },
   methods: {
@@ -90,14 +105,18 @@ export default {
       }
     },
     receberDados() {
-      ipcRenderer.on("dados-excel", (evento, dados) => { // eslint-disable-line
+      ipcRenderer.on("dados-excel", (evento, dados) => {
+        // eslint-disable-line
         console.log("Recebi os dados Excel!");
         this.dadosPlanilha = dados;
+        console.log(dados);
       });
 
-      ipcRenderer.on("dados-dbf", (evento, dados) => { // eslint-disable-line
+      ipcRenderer.on("dados-dbf", (evento, dados) => {
+        // eslint-disable-line
         console.log("Recebi os dados DBF!");
-  
+        this.dadosDBF = dados;
+        console.log(this.dadosDBF);
       });
     },
   },
