@@ -100,6 +100,26 @@ class ExcelMap {
         return linhas
     }
 
+    getRecorde(linhaIndex) {
+        // Linha onde está o dado do que quero pegar
+        let linhaData = this.arrayExcel[linhaIndex];
+        let dadosSalvar = {};
+
+        // Passar por cada coluna da linha
+        let indexColuna = 0;
+
+        this.getColunas().forEach((coluna) => {
+          let colNoDBF = this.getColunaDBF(coluna);
+          if (colNoDBF != "") {
+            dadosSalvar[colNoDBF] = linhaData[indexColuna];
+          }
+          indexColuna++;
+        });
+
+        console.log(dadosSalvar);
+        return dadosSalvar
+    }
+
 }
 
 module.exports = { ExcelMap }

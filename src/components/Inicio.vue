@@ -24,7 +24,8 @@
     </div>
 
     <div v-else>
-      <TelaExcel :dadosPlanilha="dadosPlanilha" :dadosDBF="dadosDBF" />
+      <TelaExcel :dadosPlanilha="dadosPlanilha" :dadosDBF="dadosDBF" 
+      v-on:recarregar="recarregar()"/>
     </div>
   </div>
 </template>
@@ -94,7 +95,17 @@ export default {
       console.log("Novo input de arquivo do banco...");
       this.arquivoBanco = this.$refs.arquivoBanco.files[0];
     },
+    recarregar() {
+      this.arquivosOk = false
+      this.dadosPlanilha = ""
+      this.dadosDBF = ""
+      console.log("Recarregando arquivos..");
+
+      this.enviarArquivo(this.arquivoExcel)
+      this.enviarArquivo(this.arquivoBanco)
+    },
     enviarArquivo(dados) {
+      if (dados == "") return
       console.log(dados);
 
       let resposta = ipcRenderer.sendSync("novo-arquivo", {
