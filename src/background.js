@@ -6,12 +6,13 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 
 import lerExcel from "read-excel-file/node"
-import DBFParser from "node-dbf"
+import fs from "fs"
 
 import { DBFFile } from "dbffile"
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 let janela;
+let arquivoDBF = ""
 
 ipcMain.on("novo-arquivo", async (evento, arquivo) => {
     if (arquivo.name.toLowerCase().indexOf(".xlsx") != -1 || arquivo.name.toLowerCase().indexOf(".xls") != -1) {
@@ -23,23 +24,9 @@ ipcMain.on("novo-arquivo", async (evento, arquivo) => {
     } else if (arquivo.name.toLowerCase().indexOf(".dbf") != -1) {
         console.log("Lendo um arquivo DBF...");
 
-        // let dbfReader = new DBFParser(arquivo.path, { encoding: "utf-8" })
-        // let dbfDados = []
-
-        // // Ler todas as linhas do arquivo DBF
-        // dbfReader.on('record', (linha) => {
-        //     dbfDados.push(linha)
-        // });
-
-        // dbfReader.on('end', (p) => {
-        //     console.log('Leitura do arquivo DBF concluida');
-        //     janela.webContents.send("dados-dbf", dbfDados)
-        // });
-
-        // dbfReader.parse()
-
         console.log("--------------------------------------");
         console.log("Leitura do outro DBF Parser");
+        arquivoDBF = arquivo
         let dados = await DBFFile.open(arquivo.path)
 
         console.log("DBF contem " + dados.recordCount + " recordes");
@@ -52,12 +39,63 @@ ipcMain.on("novo-arquivo", async (evento, arquivo) => {
     }
 })
 
+ipcMain.on("criar-dbf", async (evento, dados) => {
+    console.log("Iniciando a criação do arquivo DBF com os dados abaixo: ");
+    console.log(dados);
+    await criarDBF(dados)
+
+    console.log("Criação terminou");
+    evento.returnValue = { status: 0 }
+})
+
+async function criarDBF(dados) {
+    let dirSalvar = `${getDiretorio(arquivoDBF.path)}${getNomeSemExt(arquivoDBF.name)} ATUALIZADO.dbf`
+
+    console.log("Onde será salvo: " + dirSalvar);
+
+    console.log("Records que serão gravados:");
+    console.log(dados);
+
+    let dbfOriginal = await DBFFile.open(arquivoDBF.path)
+    let camposDBF = dbfOriginal.fields
+    console.log("Campos que serao criados:");
+    console.log(camposDBF);
+
+    // Excluir arquivo original se existir
+    
+
+    let dbfNovo = await DBFFile.create(dirSalvar, camposDBF)
+    console.log("Criando records....");
+    await dbfNovo.appendRecords(dados)
+    console.log("Records gravados!");
+
+    console.log("Novo DBF criado!");
+}
+
 async function lerArquivoExcel(arquivo) {
     let dadosLeitura = []
     await lerExcel(arquivo.path).then((rows) => {
         dadosLeitura = rows
     })
     return dadosLeitura
+}
+
+function getDiretorio(path) {
+    let pathCaminhos = path.split("\\")
+
+    let diretorio = ""
+    for (let index = 0; index < pathCaminhos.length; index++) {
+        if ((pathCaminhos.length - 1) == index) break;
+        const parte = pathCaminhos[index];
+        diretorio += parte + "\\"
+    }
+    return diretorio
+}
+
+function getNomeSemExt(nome) {
+    let nomeCorreto = nome.substr(0, nome.indexOf(".dbf"))
+
+    return nomeCorreto;
 }
 
 // Scheme must be registered before the app is ready

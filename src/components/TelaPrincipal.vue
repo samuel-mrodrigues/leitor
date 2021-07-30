@@ -44,8 +44,10 @@
       <input type="checkbox" v-model="removerEspacosChavePrimaria" />
       <br />
       <button @click="salvarDBF()">Salvar no DBF</button>
-      <br>
+      <br />
       <button @click="recarregar()">Carregar arquivos novamente...</button>
+      <br />
+      <button @click="criarDBF()">Criar DBF</button>
     </div>
   </div>
 </template>
@@ -56,6 +58,7 @@ import { DBFMap } from "../utilidades/DBFMap";
 
 import Tabela from "./tabela/Tabela.vue";
 import Relacionamentos from "./Relacionamentos.vue";
+import { ipcRenderer } from 'electron';
 
 export default {
   props: {
@@ -67,14 +70,14 @@ export default {
       mapaExcel: new ExcelMap(this.dadosPlanilha),
       mapaDBF: new DBFMap(this.dadosDBF),
 
-      // Contem todos os recordes no Excel
+      // Contem todos os recordes somente do Excel
       recordsExcel: [],
 
       //Contem todos os records do DBF atualizados com novos dados dos que estão no Excel
       recordsDBF: [],
 
       // Contem todos os records que não existem no DBF e existem no Excel
-      recordsCriados: [],
+      recordsExcelCriar: [],
 
       chavePrincipal: "",
       removerEspacosChavePrimaria: false,
@@ -84,7 +87,7 @@ export default {
   },
   methods: {
     recarregar() {
-      this.$emit("recarregar")
+      this.$emit("recarregar");
     },
     salvarDBF() {
       console.log("Iniciando salvamento...");
@@ -213,7 +216,21 @@ export default {
 
       console.log("Records que precisam ser criados no DBF..");
       console.log(recordsNovos);
-      this.recordsCriados = recordsNovos;
+      this.recordsExcelCriar = recordsNovos;
+    },
+    criarDBF() {
+      console.log("Enviando request para criar o arquivo DBF...");
+      let totalDadosAGravar = []
+      this.recordsDBF.forEach(record => {
+        totalDadosAGravar.push(record)
+      })
+
+      this.recordsExcelCriar.forEach(record => {
+        totalDadosAGravar.push(record)
+      })
+
+      console.log(`Enviando a gravação de ${totalDadosAGravar.length} records no novo DBF.`);
+      ipcRenderer.sendSync("criar-dbf", totalDadosAGravar)
     },
     getRecordASalvar(chaveValor) {
       for (const linha of this.recordsExcel) {
